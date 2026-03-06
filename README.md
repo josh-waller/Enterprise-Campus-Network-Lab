@@ -1,7 +1,7 @@
 # **Enterprise Campus Design Lab (BRKENS‑2031)**
 
 Implemented a multi‑VLAN, multilayer enterprise campus using routed core–distribution links, Rapid PVST+, HSRP, EIGRP, DHCP, NAT, and access‑layer security controls, following the Cisco Live BRKENS‑2031 design principles.
-#### Following this design: https://www.ciscolive.com/c/dam/r/ciscolive/emea/docs/2023/pdf/BRKENS-2031.pdf
+The Network will follow this design: https://www.ciscolive.com/c/dam/r/ciscolive/emea/docs/2023/pdf/BRKENS-2031.pdf
 
 ---
 
