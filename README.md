@@ -6,7 +6,7 @@
 
 Multi-VLAN enterprise campus with routed core–distribution links, HSRP, EIGRP, DHCP, NAT, and access-layer hardening — built in Cisco Packet Tracer following the [Cisco Live BRKENS-2031](https://www.ciscolive.com/c/dam/r/ciscolive/emea/docs/2023/pdf/BRKENS-2031.pdf) campus design methodology.
 
-![Network Topology](ENTER_CAMPUS_PKT.png)
+![Network Topology](topology.png)
 
 ---
 
