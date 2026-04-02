@@ -1,96 +1,74 @@
-# Enterprise Campus Design Lab (BRKENS-2031)
+# Enterprise Campus Network — BRKENS-2031
 
-![Cisco](https://img.shields.io/badge/Cisco-Packet_Tracer-1BA0D7?logo=cisco&logoColor=white)
-![Design](https://img.shields.io/badge/Design-Cisco_Live_BRKENS--2031-orange)
+![Cisco Packet Tracer](https://img.shields.io/badge/Cisco-Packet_Tracer-1BA0D7?logo=cisco&logoColor=white)
+![Cisco Live](https://img.shields.io/badge/Reference-Cisco_Live_BRKENS--2031-0076CE)
 ![Status](https://img.shields.io/badge/Status-Complete-brightgreen)
 
-Implemented a multi-VLAN, multilayer enterprise campus using routed core-distribution links, Rapid PVST+, HSRP, EIGRP, DHCP, NAT, and access-layer security controls, following the [Cisco Live BRKENS-2031](https://www.ciscolive.com/c/dam/r/ciscolive/emea/docs/2023/pdf/BRKENS-2031.pdf) design principles.
-
-## Topology
+Multi-VLAN enterprise campus with routed core–distribution links, HSRP, EIGRP, DHCP, NAT, and access-layer hardening — built in Cisco Packet Tracer following the [Cisco Live BRKENS-2031](https://www.ciscolive.com/c/dam/r/ciscolive/emea/docs/2023/pdf/BRKENS-2031.pdf) campus design methodology.
 
 ![Network Topology](ENTER_CAMPUS_PKT.png)
 
-## Technologies and Protocols
+---
 
-| Category | Technologies |
-|----------|-------------|
-| **Switching** | VLANs, 802.1Q Trunking, L3 Port-Channel |
-| **Routing** | EIGRP, Route Summarization, NAT |
-| **Redundancy** | HSRP (gateway load-balancing), Rapid PVST+ |
-| **Services** | DHCP (distribution-layer pools) |
-| **Security** | Port Security (sticky MAC), BPDU Guard, PortFast, Storm Control |
+## Architecture Overview
 
-## Key Skills Demonstrated
+| Layer | Components | Role |
+|-------|-----------|------|
+| **Core** | 2x L3 switches | Inter-distribution routing, L3 Port-Channel interconnect |
+| **Distribution** | 4x L3 switches | SVIs, HSRP gateways, DHCP server, EIGRP peers, STP roots |
+| **Access** | L2 switches | Host connectivity, port security, BPDU Guard, storm control |
+| **Edge** | Router | NAT, external connectivity |
 
-- Enterprise campus design following Cisco Live best practices
-- Routed core-distribution links eliminating STP in the core path
-- HSRP with STP root bridge alignment for efficient traffic flows
-- EIGRP with route summarization to reduce core routing table size
-- Distribution-layer DHCP server deployment for centralised address management
-- Access-layer hardening with port security, BPDU Guard, and storm control
-- NAT at the edge for internal-to-external connectivity
+### Design Decisions
+
+| Decision | Rationale |
+|----------|-----------|
+| Routed ports (no switchport) between core and distribution | Eliminates STP dependency in the core path; enables deterministic L3 forwarding and ECMP |
+| L3 Port-Channel between core switches | Bandwidth aggregation and resilience without STP convergence delays |
+| HSRP active/root alignment per VLAN | Ensures forwarding path matches the STP root bridge, avoiding suboptimal L2 pathing |
+| Distribution-layer DHCP | Centralises address management at the distribution tier; reduces reliance on external DHCP servers |
+| Route summarization toward core | Reduces core routing table size and SPF computation overhead |
+
+## VLAN and Addressing Scheme
+
+| VLAN | Subnet | Gateway (HSRP VIP) | DSW .2 | DSW .3 |
+|------|--------|-------------------|--------|--------|
+| 3 | 192.168.3.0/24 | .1 | .2 | .3 |
+| 5 | 192.168.5.0/24 | .1 | .2 | .3 |
+| 9 | 192.168.9.0/24 | .1 | .2 | .3 |
+| 14 | 192.168.14.0/24 | .1 | .2 | .3 |
+| 34 | 192.168.34.0/24 | .1 | .2 | .3 |
+| 37 | 192.168.37.0/24 | .1 | .2 | .3 |
+| 42 | 192.168.42.0/24 | .1 | .2 | .3 |
+| 46 | 192.168.46.0/24 | .1 | .2 | .3 |
+
+- DHCP pools per VLAN with first three addresses excluded (.1–.3)
+- DNS: 8.8.8.8
 
 ---
 
-## L3 Port-Channel and VLANs
+## Routing and Redundancy
 
-Built a Layer-3 Port-Channel between the core switches to provide increased bandwidth and fast convergence without relying on Spanning Tree.
+**EIGRP** — Enabled between distribution and core, advertising VLAN subnets and inter-switch networks. Routes summarized at the distribution layer toward the core to minimise routing table churn.
 
-Configured VLANs 3, 5, 9, 14 and 34, 37, 42, 46 across the campus, using them as separate broadcast domains for different user groups and services.
+**HSRP** — Active/standby pairs per VLAN across distribution switches. Data centre VLANs use dual HSRP instances for gateway load-balancing.
 
----
+**Rapid PVST+** — Per-VLAN spanning tree with root bridges aligned to HSRP active gateways.
 
-## SVIs, DHCP, and HSRP
+**NAT** — Configured at the network edge for internal-to-external address translation.
 
-Created SVIs for each VLAN on the distribution switches, using the 192.168.X.0/24 scheme with:
+## Access Layer Security
 
-- Virtual gateway IPs: 192.168.X.1
-- Physical distribution switch IPs: 192.168.X.2 and 192.168.X.3
+| Control | Configuration |
+|---------|--------------|
+| **Port Mode** | `switchport mode access` with `nonegotiate` to prevent DTP trunk negotiation |
+| **Port Security** | Sticky MAC learning, max 2 MACs, violation mode `restrict` |
+| **BPDU Guard** | Enabled on all host-facing ports |
+| **PortFast** | Enabled on all host-facing ports |
+| **Storm Control** | Broadcast/multicast rate limiting |
 
-Configured DHCP on the distribution layer by:
+## Observations
 
-- Excluding 192.168.X.1-192.168.X.3 for all VLANs 3, 5, 9, 14, 34, 37, 42, 46
-- Creating DHCP pools `VLAN3`, `VLAN5`, `VLAN9`, `VLAN14`, `VLAN34`, `VLAN37`, `VLAN42`, `VLAN46` with gateway 192.168.X.1 and DNS 8.8.8.8
-
-Implemented HSRP on each VLAN using the above addressing format to provide default-gateway redundancy and, in the data centre, two HSRP instances for gateway load-balancing.
-
----
-
-## Trunking and STP Root Manipulation
-
-Used routed ports (no switchport) between core and distribution to remove the need for STP there and to allow optimal load balancing and fast convergence.
-
-On VLAN trunks where needed, aligned HSRP primaries with the STP root bridges so that the active gateway is also the Layer-2 root for efficient traffic flows.
-
----
-
-## Access Layer Configuration
-
-On the access-layer switches, configured user-facing ports with:
-
-- `switchport mode access` and `nonegotiate` to prevent unwanted trunking
-- Port security with sticky MAC, maximum 2 MAC addresses, violation mode `restrict`
-- BPDU Guard and STP PortFast to protect STP and speed host convergence
-- Storm control to limit broadcast/multicast storms
-
-These controls enforced **port-level security** and protected the campus from common Layer-2 attacks and misconfigurations.
-
----
-
-## EIGRP, NAT, and Route Summarization
-
-Enabled EIGRP between distribution and core, advertising VLAN and inter-switch networks.
-
-Summarized routes on the distribution layer towards the core to reduce routing table size and CPU load at the core.
-
-Implemented NAT at the edge so internal VLAN subnets could access external networks while hiding internal addressing.
-
----
-
-## Design Notes and Behaviours
-
-- Core-distribution links as **router ports (no switchport)** eliminated STP in the core path, enabling faster convergence and more deterministic routing.
-- Core-to-core **Layer-3 Port-Channel** increased bandwidth and resilience while keeping the control plane simple.
-- Distribution switches acted as DHCP servers for access VLANs, centralising address management at the distribution tier.
-- All switches ran **Rapid PVST+** to provide per-VLAN spanning tree with improved convergence times.
-- Summarising distribution routes towards the core reduced SPF and CPU load, making the design more scalable.
+- Core–distribution routed links provided deterministic forwarding and sub-second convergence on simulated link failures.
+- HSRP/STP alignment eliminated asymmetric traffic patterns across distribution pairs.
+- Route summarization at the distribution tier kept the core routing table compact and reduced EIGRP query scope.
